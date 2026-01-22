@@ -101,9 +101,12 @@ class Patient:
     self.instance_location = None
     self.instance_notes = None
     self.instance_pat_ida = None
+    self.instance_pat_idb = None
     self.instance_prescriptions = None
     self.instance_performed_site_setups = None
     self.instance_scheduled_fields = None
+    self.instance_consultant_id = None
+    self.instance_secondary_consultant_id = None
 
   # Patient's address (postal code).
   def address(self):
@@ -175,6 +178,22 @@ class Patient:
       if row != None:
         self.instance_institution_id = row['Inst_ID']
     return self.instance_institution_id
+
+  # Patient's consultant id (look up in Location)
+  def consultant_id(self):
+    if not self.instance_consultant_id:
+      row = Database.fetch_one("SELECT * FROM Admin WHERE Pat_ID1 = '{}'".format(self.pat_id1))
+      if row != None:
+        self.instance_consultant_id = row['Attending_Md_Id']
+    return self.instance_consultant_id
+  
+  # Patient's secondary consultant id (look up in External)
+  def secondary_consultant_id(self):
+    if not self.instance_secondary_consultant_id:
+      row = Database.fetch_one("SELECT * FROM Admin WHERE Pat_ID1 = '{}'".format(self.pat_id1))
+      if row != None:
+        self.instance_secondary_consultant_id = row['Ref_Md_ID']
+    return self.instance_secondary_consultant_id
   
   # Patient's nursing status (in hospital bed or not).
   def is_in(self):
@@ -219,13 +238,22 @@ class Patient:
       self.instance_notes = Note.for_patient(self)
     return self.instance_notes
   
-  # Patients PAT_IDA (social security nr).
+  # Patients PAT_IDA (GC number).
   def pat_ida(self):
     if not self.instance_pat_ida:
       row = Database.fetch_one("SELECT * FROM Ident WHERE Pat_ID1 = '{}'".format(self.pat_id1))
       if row != None:
         self.instance_pat_ida = row['IDA']
     return self.instance_pat_ida
+  
+  # Patients PAT_IDB (NHS number)
+  def pat_idb(self):
+    if not self.instance_pat_idb:
+      row = Database.fetch_one("SELECT * FROM Ident WHERE Pat_ID1 = '{}'".format(self.pat_id1))
+      if row != None:
+        self.instance_pat_idb = row['IDB']
+    return self.instance_pat_idb
+
   
   # Gives the patient's performed_site_setup instances.
   def performed_site_setups(self):
